@@ -1,52 +1,109 @@
 # IPTV Stream 📺
 
-A modern, responsive IPTV streaming web application that works on both desktop and mobile devices.
+A modern, full-stack IPTV streaming web application with user authentication, cloud sync, and cross-device support.
+
+[![GitHub](https://img.shields.io/badge/GitHub-Private%20Repo-blue)](https://github.com/aakashkishan/iptv-app)
+[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
+[![Supabase](https://img.shields.io/badge/Database-Supabase-green)](https://supabase.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 ## Features
 
+### 🎬 Streaming
 - ✅ **M3U/M3U8 Playlist Support** - Load playlists from URL or file upload
 - ✅ **HLS Streaming** - Built-in HLS.js integration for smooth playback
 - ✅ **EPG (TV Guide)** - XMLTV electronic program guide support
-- ✅ **Favorites** - Star your favorite channels for quick access
-- ✅ **Recently Watched** - Track your viewing history
 - ✅ **Category Filtering** - Filter channels by group/category
 - ✅ **Search** - Quick channel search functionality
+- ✅ **Grid/List Views** - Choose your preferred channel layout
+
+### 👤 User Accounts
+- ✅ **Email Authentication** - Secure sign up/sign in with email verification
+- ✅ **User Profiles** - Customizable profiles with preferences
+- ✅ **Cloud Sync** - All data synced across devices via Supabase
+- ✅ **Favorites** - Star your favorite channels (synced to cloud)
+- ✅ **Recently Watched** - Track your viewing history (synced to cloud)
+- ✅ **Playlists** - Multiple playlists stored in cloud
+
+### 🎨 UI/UX
 - ✅ **Responsive Design** - Works on Mac, Android, and all devices
 - ✅ **PWA Support** - Installable on mobile and desktop
 - ✅ **Dark Theme** - Beautiful dark UI optimized for video watching
-- ✅ **Grid/List Views** - Choose your preferred channel layout
+- ✅ **Mobile Navigation** - Optimized for touch and small screens
 
 ## Tech Stack
 
-- **React 18** + **TypeScript**
-- **Vite** - Fast build tooling
-- **Tailwind CSS** - Responsive styling
-- **Zustand** - State management
-- **HLS.js** - HLS stream playback
-- **React Router** - Client-side routing
-- **IndexedDB** - Local storage for settings
-- **Vite PWA** - Progressive Web App support
+- **Frontend:**
+  - **React 18** + **TypeScript**
+  - **Vite** - Fast build tooling
+  - **Tailwind CSS** - Responsive styling
+  - **Zustand** - State management
+  - **React Router** - Client-side routing
 
-## Getting Started
+- **Backend:**
+  - **Supabase** - Database & Authentication
+  - **PostgreSQL** - Relational database with RLS
+  - **Row Level Security** - User data isolation
+
+- **Media:**
+  - **HLS.js** - HLS stream playback
+  - **Vite PWA** - Progressive Web App support
+
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ and npm
+- Supabase account (free): https://supabase.com
 
-### Installation
+### 1. Clone the Repository
 
 ```bash
-# Navigate to the project directory
+git clone https://github.com/aakashkishan/iptv-app.git
 cd iptv-app
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
 npm install
+```
 
-# Start development server
+### 3. Set Up Supabase
+
+See [SUPABASE_SETUP.md](SUPABASE_SETUP.md) for detailed instructions.
+
+**Quick version:**
+1. Create a Supabase project at https://supabase.com
+2. Run the SQL script from `supabase-setup.sql` in Supabase SQL Editor
+3. Copy your project URL and anon key from Settings → API
+
+### 4. Configure Environment Variables
+
+```bash
+cp .env.example .env
+```
+
+Edit `.env` and add your Supabase credentials:
+```env
+VITE_SUPABASE_URL=https://your-project-id.supabase.co
+VITE_SUPABASE_ANON_KEY=your-anon-key-here
+```
+
+### 5. Start Development Server
+
+```bash
 npm run dev
 ```
 
 The app will open at `http://localhost:5173`
+
+### 6. Create Your Account
+
+1. Click "Sign up" on the login page
+2. Enter your email and password
+3. Check your email for the confirmation link
+4. Sign in and start adding playlists!
 
 ### Building for Production
 
