@@ -26,7 +26,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-dark-950">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: 'var(--bg0-hard)' }}>
         <div className="spinner" />
       </div>
     );
@@ -47,7 +47,7 @@ function AppContent() {
   }
 
   return (
-    <div className="flex h-screen bg-dark-950">
+    <div className="flex h-screen" style={{ backgroundColor: 'var(--bg0-hard)' }}>
       {/* Desktop Sidebar */}
       <Sidebar />
 

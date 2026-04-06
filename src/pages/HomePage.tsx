@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { useStore } from '../store';
-import { Channel } from '../types';
-import { parseM3U, fetchPlaylist, parseM3UFile } from '../utils/m3uParser';
-import VideoPlayer from '../components/VideoPlayer';
-import ChannelList from '../components/ChannelList';
-import CategoryFilter from '../components/CategoryFilter';
-import SearchBar from '../components/SearchBar';
+import { useStore } from '@/store';
+import { Channel } from '@/types';
+import { parseM3U, fetchPlaylist, parseM3UFile } from '@/utils/m3uParser';
+import VideoPlayer from '@/components/VideoPlayer';
+import ChannelList from '@/components/ChannelList';
+import CategoryFilter from '@/components/CategoryFilter';
+import SearchBar from '@/components/SearchBar';
 
 export default function HomePage() {
   const {
@@ -84,7 +84,6 @@ export default function HomePage() {
       (entries) => {
         if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
           setIsLoadingMore(true);
-          // Small delay to prevent rapid firing
           setTimeout(() => {
             loadMoreChannels();
             setIsLoadingMore(false);
@@ -92,7 +91,7 @@ export default function HomePage() {
         }
       },
       {
-        rootMargin: '500px', // Load more when 500px from bottom
+        rootMargin: '500px',
       }
     );
 
@@ -121,7 +120,6 @@ export default function HomePage() {
     try {
       const channelsList = await fetchPlaylist(playlistUrl);
       
-      // Warn for very large playlists
       if (channelsList.length > 5000) {
         if (!window.confirm(
           `This playlist contains ${channelsList.length.toLocaleString()} channels. The app will load them efficiently (100 at a time). Continue?`
@@ -160,7 +158,6 @@ export default function HomePage() {
     try {
       const channelsList = await parseM3UFile(file);
       
-      // Warn for very large playlists
       if (channelsList.length > 5000) {
         if (!window.confirm(
           `This playlist contains ${channelsList.length.toLocaleString()} channels. The app will load them efficiently (100 at a time). Continue?`
@@ -195,53 +192,62 @@ export default function HomePage() {
     return (
       <div className="flex flex-col items-center justify-center min-h-[calc(100vh-8rem)] p-6">
         <div className="max-w-md w-full text-center">
-          <div className="w-20 h-20 mx-auto mb-6 bg-gradient-to-br from-primary-500 to-primary-700 rounded-full flex items-center justify-center">
-            <svg className="w-10 h-10 text-white" fill="currentColor" viewBox="0 0 24 24">
+          <div className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center" style={{ background: 'linear-gradient(135deg, var(--bright-blue), var(--blue))' }}>
+            <svg className="w-10 h-10" style={{ color: 'var(--fg0)' }} fill="currentColor" viewBox="0 0 24 24">
               <path d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7z" />
             </svg>
           </div>
 
-          <h2 className="text-2xl font-bold text-white mb-2">Welcome to IPTV Stream</h2>
-          <p className="text-dark-400 mb-8">Add an M3U playlist to start watching live TV</p>
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--fg0)' }}>Welcome to IPTV Stream</h2>
+          <p className="mb-8" style={{ color: 'var(--fg4)' }}>Add an M3U playlist to start watching live TV</p>
 
           <div className="space-y-4">
             {/* URL Input */}
-            <div className="bg-dark-800 rounded-lg p-6 border border-dark-700">
-              <h3 className="text-lg font-semibold text-white mb-4">Load from URL</h3>
+            <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--fg1)' }}>Load from URL</h3>
               <input
                 type="url"
                 value={playlistUrl}
                 onChange={(e) => setPlaylistUrl(e.target.value)}
                 placeholder="https://example.com/playlist.m3u"
-                className="w-full px-4 py-3 bg-dark-900 border border-dark-600 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500 mb-3"
+                className="w-full px-4 py-3 rounded-lg focus:outline-none transition-colors"
+                style={{ backgroundColor: 'var(--bg1)', border: '1px solid var(--bg4)', color: 'var(--fg1)' }}
+                onFocus={(e) => e.currentTarget.style.borderColor = 'var(--bright-blue)'}
+                onBlur={(e) => e.currentTarget.style.borderColor = 'var(--bg4)'}
               />
               <button
                 onClick={handleLoadPlaylist}
                 disabled={!playlistUrl}
-                className="w-full px-6 py-3 bg-primary-600 text-white rounded-lg font-medium hover:bg-primary-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="w-full px-6 py-3 rounded-lg font-medium mt-3 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                style={{ backgroundColor: 'var(--blue)', color: 'var(--fg0)' }}
+                onMouseEnter={(e) => { if (!playlistUrl === false) e.currentTarget.style.backgroundColor = 'var(--bright-blue)'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'var(--blue)'; }}
               >
                 Load Playlist
               </button>
-              <p className="text-xs text-dark-500 mt-3">
+              <p className="text-xs mt-3" style={{ color: 'var(--fg4)' }}>
                 💡 Try: https://iptv-org.github.io/iptv/index.m3u (10,000+ free channels)
               </p>
-              <p className="text-xs text-primary-400 mt-2">
+              <p className="text-xs mt-2" style={{ color: 'var(--bright-blue)' }}>
                 ✨ Lazy loading enabled - only 100 channels load at a time
               </p>
             </div>
 
-            <div className="text-dark-500 font-medium">OR</div>
+            <div className="font-medium" style={{ color: 'var(--fg4)' }}>OR</div>
 
             {/* File Upload */}
-            <div className="bg-dark-800 rounded-lg p-6 border border-dark-700">
-              <h3 className="text-lg font-semibold text-white mb-4">Upload File</h3>
-              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-dark-600 rounded-lg cursor-pointer hover:border-primary-500 transition-colors">
+            <div className="rounded-lg p-6" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+              <h3 className="text-lg font-semibold mb-4" style={{ color: 'var(--fg1)' }}>Upload File</h3>
+              <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer transition-colors" style={{ borderColor: 'var(--bg4)' }}
+                onMouseEnter={(e) => e.currentTarget.style.borderColor = 'var(--bright-blue)'}
+                onMouseLeave={(e) => e.currentTarget.style.borderColor = 'var(--bg4)'}
+              >
                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                  <svg className="w-8 h-8 mb-3 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <svg className="w-8 h-8 mb-3" style={{ color: 'var(--fg4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
                   </svg>
-                  <p className="text-sm text-dark-400">Click to upload or drag and drop</p>
-                  <p className="text-xs text-dark-500">M3U or M3U8 files</p>
+                  <p className="text-sm" style={{ color: 'var(--fg4)' }}>Click to upload or drag and drop</p>
+                  <p className="text-xs" style={{ color: 'var(--bright-neutral)' }}>M3U or M3U8 files</p>
                 </div>
                 <input
                   type="file"
@@ -261,19 +267,19 @@ export default function HomePage() {
     <div className="min-h-[calc(100vh-8rem)]">
       {/* Player */}
       {showPlayer && player.currentChannel && (
-        <div className="sticky top-0 z-40 bg-dark-950">
+        <div className="sticky top-0 z-40" style={{ backgroundColor: 'var(--bg0-hard)' }}>
           <VideoPlayer
             channel={player.currentChannel}
             onReady={() => setShowPlayer(true)}
             onError={() => setShowPlayer(true)}
           />
-          <div className="flex items-center justify-between p-4 bg-dark-900 border-b border-dark-800">
+          <div className="flex items-center justify-between p-4" style={{ backgroundColor: 'var(--bg1)', borderBottom: '1px solid var(--bg3)' }}>
             <div>
-              <h2 className="text-lg font-semibold text-white">
+              <h2 className="text-lg font-semibold" style={{ color: 'var(--fg1)' }}>
                 {player.currentChannel.name}
               </h2>
               {player.currentChannel.group && (
-                <p className="text-sm text-dark-400">{player.currentChannel.group}</p>
+                <p className="text-sm" style={{ color: 'var(--fg4)' }}>{player.currentChannel.group}</p>
               )}
             </div>
             <button
@@ -281,9 +287,12 @@ export default function HomePage() {
                 setShowPlayer(false);
                 setPlayerState({ currentChannel: null, isPlaying: false });
               }}
-              className="p-2 rounded-lg bg-dark-800 hover:bg-dark-700 transition-colors"
+              className="p-2 rounded-lg transition-colors"
+              style={{ backgroundColor: 'var(--bg2)' }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg2)'}
             >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-6 h-6" style={{ color: 'var(--fg3)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
             </button>
@@ -292,22 +301,22 @@ export default function HomePage() {
       )}
 
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-dark-900/95 backdrop-blur-sm border-b border-dark-800 safe-top">
+      <div className="sticky top-0 z-30 backdrop-blur-sm safe-top" style={{ backgroundColor: 'rgba(40, 40, 40, 0.95)', borderBottom: '1px solid var(--bg3)' }}>
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl font-bold text-white">
+              <h1 className="text-xl font-bold" style={{ color: 'var(--fg0)' }}>
                 {selectedCategory === 'All' ? 'All Channels' : selectedCategory}
               </h1>
               {channels.length > 1000 && (
-                <p className="text-xs text-dark-500 mt-1">
+                <p className="text-xs mt-1" style={{ color: 'var(--fg4)' }}>
                   Showing {displayedChannels.length.toLocaleString()} of {optimizedFilteredChannels.length.toLocaleString()} channels
                   {hasMore && ' • Scroll to load more'}
                 </p>
               )}
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-sm text-dark-400">
+              <span className="text-sm" style={{ color: 'var(--fg4)' }}>
                 {optimizedFilteredChannels.length.toLocaleString()} total
               </span>
             </div>
@@ -325,18 +334,21 @@ export default function HomePage() {
       <div className="p-4 pb-24 md:pb-4">
         <ChannelList channels={displayedChannels} onSelectChannel={handleSelectChannel} />
 
-        {/* Load More indicator (infinite scroll sentinel) */}
+        {/* Load More indicator */}
         {hasMore && (
           <div ref={loadMoreRef} className="mt-6 text-center">
             {isLoadingMore ? (
               <div className="flex items-center justify-center gap-3 py-4">
                 <div className="spinner" style={{ width: '24px', height: '24px', borderWidth: '2px' }} />
-                <span className="text-dark-400 text-sm">Loading more channels...</span>
+                <span className="text-sm" style={{ color: 'var(--fg4)' }}>Loading more channels...</span>
               </div>
             ) : (
               <button
                 onClick={handleLoadMore}
-                className="px-8 py-3 bg-dark-800 border border-dark-700 text-white rounded-lg hover:bg-dark-700 transition-colors"
+                className="px-8 py-3 rounded-lg transition-colors"
+                style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)', color: 'var(--fg1)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--bg2)'}
               >
                 Load More Channels ({(optimizedFilteredChannels.length - displayCount).toLocaleString()} remaining)
               </button>
@@ -347,7 +359,7 @@ export default function HomePage() {
         {/* All channels loaded message */}
         {!hasMore && optimizedFilteredChannels.length > 100 && (
           <div className="mt-6 text-center py-4">
-            <p className="text-dark-500 text-sm">
+            <p className="text-sm" style={{ color: 'var(--fg4)' }}>
               ✓ All {optimizedFilteredChannels.length.toLocaleString()} channels loaded
             </p>
           </div>

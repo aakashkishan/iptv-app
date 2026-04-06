@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 
 export default function SettingsPage() {
   const { settings, setSettings, playlists, setPlaylists, setChannels, setActivePlaylist } = useStore();
@@ -44,101 +44,111 @@ export default function SettingsPage() {
     }
   };
 
+  const ToggleSwitch = ({ enabled }: { enabled: boolean }) => (
+    <div className="w-12 h-6 rounded-full relative transition-colors" style={{ backgroundColor: enabled ? 'var(--blue)' : 'var(--bg4)' }}>
+      <div className="absolute top-1 w-4 h-4 bg-white rounded-full transition-transform" style={{ transform: enabled ? 'translateX(24px)' : 'translateX(4px)' }} />
+    </div>
+  );
+
   return (
     <div className="min-h-[calc(100vh-8rem)]">
       {/* Header */}
-      <div className="sticky top-0 z-30 bg-dark-900/95 backdrop-blur-sm border-b border-dark-800 safe-top">
+      <div className="sticky top-0 z-30 backdrop-blur-sm safe-top" style={{ backgroundColor: 'rgba(40, 40, 40, 0.95)', borderBottom: '1px solid var(--bg3)' }}>
         <div className="p-4">
-          <h1 className="text-xl font-bold text-white">Settings</h1>
+          <h1 className="text-xl font-bold" style={{ color: 'var(--fg0)' }}>Settings</h1>
         </div>
       </div>
 
       {/* Settings Content */}
       <div className="p-4 pb-24 md:pb-4 space-y-4">
         {/* Appearance */}
-        <div className="bg-dark-800 rounded-lg border border-dark-700 overflow-hidden">
-          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold text-dark-400 uppercase tracking-wide">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--fg4)' }}>
             Appearance
           </h2>
           
           <button
             onClick={handleToggleTheme}
-            className="w-full flex items-center justify-between p-4 hover:bg-dark-700 transition-colors"
+            className="w-full flex items-center justify-between p-4 transition-colors"
+            style={{ borderTop: '1px solid var(--bg3)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" style={{ color: 'var(--fg4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
               </svg>
-              <span className="text-white">Dark Mode</span>
+              <span style={{ color: 'var(--fg1)' }}>Dark Mode</span>
             </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${settings.theme === 'dark' ? 'bg-primary-600' : 'bg-dark-600'} relative`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${settings.theme === 'dark' ? 'translate-x-7' : 'translate-x-1'}`} />
-            </div>
+            <ToggleSwitch enabled={settings.theme === 'dark'} />
           </button>
 
           <button
             onClick={handleToggleViewMode}
-            className="w-full flex items-center justify-between p-4 hover:bg-dark-700 transition-colors border-t border-dark-700"
+            className="w-full flex items-center justify-between p-4 transition-colors"
+            style={{ borderTop: '1px solid var(--bg3)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" style={{ color: 'var(--fg4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" />
               </svg>
-              <span className="text-white">List View</span>
+              <span style={{ color: 'var(--fg1)' }}>List View</span>
             </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${settings.channelView === 'list' ? 'bg-primary-600' : 'bg-dark-600'} relative`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${settings.channelView === 'list' ? 'translate-x-7' : 'translate-x-1'}`} />
-            </div>
+            <ToggleSwitch enabled={settings.channelView === 'list'} />
           </button>
         </div>
 
         {/* Player Settings */}
-        <div className="bg-dark-800 rounded-lg border border-dark-700 overflow-hidden">
-          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold text-dark-400 uppercase tracking-wide">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--fg4)' }}>
             Player
           </h2>
           
           <button
             onClick={handleToggleAutoplay}
-            className="w-full flex items-center justify-between p-4 hover:bg-dark-700 transition-colors"
+            className="w-full flex items-center justify-between p-4 transition-colors"
+            style={{ borderTop: '1px solid var(--bg3)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" style={{ color: 'var(--fg4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
-              <span className="text-white">Autoplay</span>
+              <span style={{ color: 'var(--fg1)' }}>Autoplay</span>
             </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${settings.playerAutoplay ? 'bg-primary-600' : 'bg-dark-600'} relative`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${settings.playerAutoplay ? 'translate-x-7' : 'translate-x-1'}`} />
-            </div>
+            <ToggleSwitch enabled={settings.playerAutoplay} />
           </button>
         </div>
 
         {/* EPG Settings */}
-        <div className="bg-dark-800 rounded-lg border border-dark-700 overflow-hidden">
-          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold text-dark-400 uppercase tracking-wide">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--fg4)' }}>
             TV Guide (EPG)
           </h2>
           
           <button
             onClick={handleToggleEPG}
-            className="w-full flex items-center justify-between p-4 hover:bg-dark-700 transition-colors"
+            className="w-full flex items-center justify-between p-4 transition-colors"
+            style={{ borderTop: '1px solid var(--bg3)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
             <div className="flex items-center gap-3">
-              <svg className="w-5 h-5 text-dark-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg className="w-5 h-5" style={{ color: 'var(--fg4)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              <span className="text-white">Enable EPG</span>
+              <span style={{ color: 'var(--fg1)' }}>Enable EPG</span>
             </div>
-            <div className={`w-12 h-6 rounded-full transition-colors ${settings.epgEnabled ? 'bg-primary-600' : 'bg-dark-600'} relative`}>
-              <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${settings.epgEnabled ? 'translate-x-7' : 'translate-x-1'}`} />
-            </div>
+            <ToggleSwitch enabled={settings.epgEnabled} />
           </button>
 
           {settings.epgEnabled && (
-            <div className="p-4 border-t border-dark-700">
-              <label className="block text-sm font-medium text-dark-400 mb-2">
+            <div className="p-4" style={{ borderTop: '1px solid var(--bg3)' }}>
+              <label className="block text-sm font-medium mb-2" style={{ color: 'var(--fg4)' }}>
                 EPG XML URL
               </label>
               <div className="flex gap-2">
@@ -147,11 +157,17 @@ export default function SettingsPage() {
                   value={epgUrl}
                   onChange={(e) => setEpgUrl(e.target.value)}
                   placeholder="https://example.com/epg.xml"
-                  className="flex-1 px-4 py-2 bg-dark-900 border border-dark-600 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  className="flex-1 px-4 py-2 rounded-lg focus:outline-none transition-colors"
+                  style={{ backgroundColor: 'var(--bg1)', border: '1px solid var(--bg4)', color: 'var(--fg1)' }}
+                  onFocus={(e) => e.currentTarget.style.borderColor = 'var(--bright-blue)'}
+                  onBlur={(e) => e.currentTarget.style.borderColor = 'var(--bg4)'}
                 />
                 <button
                   onClick={handleSaveEPGUrl}
-                  className="px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                  className="px-4 py-2 rounded-lg transition-colors"
+                  style={{ backgroundColor: 'var(--blue)', color: 'var(--fg0)' }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bright-blue)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--blue)'}
                 >
                   Save
                 </button>
@@ -161,28 +177,31 @@ export default function SettingsPage() {
         </div>
 
         {/* Playlists */}
-        <div className="bg-dark-800 rounded-lg border border-dark-700 overflow-hidden">
-          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold text-dark-400 uppercase tracking-wide">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
+          <h2 className="px-4 pt-4 pb-2 text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--fg4)' }}>
             Playlists
           </h2>
           
           {playlists.length === 0 ? (
-            <div className="p-4 text-dark-500 text-sm">
+            <div className="p-4 text-sm" style={{ color: 'var(--fg4)', borderTop: '1px solid var(--bg3)' }}>
               No saved playlists. Add one from the home screen.
             </div>
           ) : (
-            <div className="divide-y divide-dark-700">
+            <div style={{ borderTop: '1px solid var(--bg3)' }}>
               {playlists.map((playlist) => (
-                <div key={playlist.id} className="flex items-center justify-between p-4">
+                <div key={playlist.id} className="flex items-center justify-between p-4" style={{ borderBottom: '1px solid var(--bg3)' }}>
                   <div>
-                    <p className="text-white font-medium">{playlist.name}</p>
-                    <p className="text-sm text-dark-400">
+                    <p className="font-medium" style={{ color: 'var(--fg1)' }}>{playlist.name}</p>
+                    <p className="text-sm" style={{ color: 'var(--fg4)' }}>
                       {playlist.channels.length} channels
                     </p>
                   </div>
                   <button
                     onClick={() => handleDeletePlaylist(playlist.id)}
-                    className="p-2 text-red-500 hover:bg-red-900/20 rounded-lg transition-colors"
+                    className="p-2 rounded-lg transition-colors"
+                    style={{ color: 'var(--bright-red)' }}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(251, 73, 52, 0.1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -195,16 +214,19 @@ export default function SettingsPage() {
         </div>
 
         {/* Advanced */}
-        <div className="bg-dark-800 rounded-lg border border-dark-700 overflow-hidden">
+        <div className="rounded-lg overflow-hidden" style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}>
           <button
             onClick={() => setShowAdvanced(!showAdvanced)}
-            className="w-full flex items-center justify-between p-4 hover:bg-dark-700 transition-colors"
+            className="w-full flex items-center justify-between p-4 transition-colors"
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg3)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
           >
-            <h2 className="text-sm font-semibold text-dark-400 uppercase tracking-wide">
+            <h2 className="text-sm font-semibold uppercase tracking-wide" style={{ color: 'var(--fg4)' }}>
               Advanced
             </h2>
             <svg
-              className={`w-5 h-5 text-dark-400 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+              className={`w-5 h-5 transition-transform ${showAdvanced ? 'rotate-180' : ''}`}
+              style={{ color: 'var(--fg4)' }}
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -214,10 +236,13 @@ export default function SettingsPage() {
           </button>
 
           {showAdvanced && (
-            <div className="p-4 border-t border-dark-700">
+            <div className="p-4" style={{ borderTop: '1px solid var(--bg3)' }}>
               <button
                 onClick={handleClearAllData}
-                className="w-full px-4 py-3 bg-red-900/20 border border-red-800 text-red-500 rounded-lg hover:bg-red-900/30 transition-colors"
+                className="w-full px-4 py-3 rounded-lg transition-colors"
+                style={{ backgroundColor: 'rgba(204, 36, 29, 0.2)', border: '1px solid var(--red)', color: 'var(--bright-red)' }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(204, 36, 29, 0.3)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(204, 36, 29, 0.2)'}
               >
                 Clear All Data
               </button>
@@ -226,7 +251,7 @@ export default function SettingsPage() {
         </div>
 
         {/* App Info */}
-        <div className="text-center py-8 text-dark-500 text-sm">
+        <div className="text-center py-8 text-sm" style={{ color: 'var(--fg4)' }}>
           <p>IPTV Stream v1.0</p>
           <p className="mt-1">A modern IPTV player for the web</p>
         </div>

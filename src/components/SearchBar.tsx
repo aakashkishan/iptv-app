@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useStore } from '../store';
+import { useStore } from '@/store';
 
 export default function SearchBar() {
   const [query, setQuery] = useState('');
@@ -23,10 +23,14 @@ export default function SearchBar() {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search channels..."
-          className="w-full px-4 py-3 pl-12 bg-dark-800 border border-dark-700 rounded-lg text-white placeholder-dark-500 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent"
+          className="w-full px-4 py-3 pl-12 rounded-lg text-white focus:outline-none transition-colors"
+          style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}
+          onFocus={(e) => e.currentTarget.style.borderColor = 'var(--bright-blue)'}
+          onBlur={(e) => e.currentTarget.style.borderColor = 'var(--bg3)'}
         />
         <svg
-          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-dark-500"
+          className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5"
+          style={{ color: 'var(--fg4)' }}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -37,7 +41,10 @@ export default function SearchBar() {
           <button
             type="button"
             onClick={handleClear}
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-dark-500 hover:text-white"
+            className="absolute right-4 top-1/2 -translate-y-1/2 transition-colors"
+            style={{ color: 'var(--fg4)' }}
+            onMouseEnter={(e) => e.currentTarget.style.color = 'var(--fg1)'}
+            onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg4)'}
           >
             <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
               <path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z" />

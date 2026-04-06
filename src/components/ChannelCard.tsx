@@ -1,5 +1,5 @@
-import { Channel } from '../types';
-import { useStore } from '../store';
+import { Channel } from '@/types';
+import { useStore } from '@/store';
 
 interface ChannelCardProps {
   channel: Channel;
@@ -12,14 +12,21 @@ export default function ChannelCard({ channel, onSelect }: ChannelCardProps) {
 
   return (
     <div
-      className="channel-card group relative bg-dark-800 rounded-lg overflow-hidden cursor-pointer hover:bg-dark-700 border border-dark-700 hover:border-primary-500/50"
+      className="channel-card group relative rounded-lg overflow-hidden cursor-pointer"
+      style={{ backgroundColor: 'var(--bg2)', border: '1px solid var(--bg3)' }}
       onClick={() => onSelect(channel)}
       role="button"
       tabIndex={0}
       onKeyDown={(e) => e.key === 'Enter' && onSelect(channel)}
+      onMouseEnter={(e) => {
+        e.currentTarget.style.borderColor = 'var(--bright-blue)';
+      }}
+      onMouseLeave={(e) => {
+        e.currentTarget.style.borderColor = 'var(--bg3)';
+      }}
     >
       {/* Logo */}
-      <div className="relative aspect-video bg-dark-900 flex items-center justify-center p-4">
+      <div className="relative aspect-video flex items-center justify-center p-4" style={{ backgroundColor: 'var(--bg1)' }}>
         {channel.logo ? (
           <img
             src={channel.logo}
@@ -30,7 +37,7 @@ export default function ChannelCard({ channel, onSelect }: ChannelCardProps) {
             }}
           />
         ) : (
-          <div className="text-dark-500 text-4xl font-bold">
+          <div className="text-4xl font-bold" style={{ color: 'var(--fg4)' }}>
             {channel.name.charAt(0).toUpperCase()}
           </div>
         )}
@@ -41,11 +48,13 @@ export default function ChannelCard({ channel, onSelect }: ChannelCardProps) {
             e.stopPropagation();
             toggleFavorite(channel.id);
           }}
-          className="absolute top-2 right-2 p-1 rounded-full bg-dark-900/80 hover:bg-dark-900 transition-colors"
+          className="absolute top-2 right-2 p-1 rounded-full transition-colors"
+          style={{ backgroundColor: 'rgba(29, 32, 33, 0.8)' }}
           aria-label={isFavorite ? 'Remove from favorites' : 'Add to favorites'}
         >
           <svg
-            className={`w-5 h-5 ${isFavorite ? 'text-yellow-500 fill-yellow-500' : 'text-dark-400'}`}
+            className={`w-5 h-5 ${isFavorite ? 'fill-current' : ''}`}
+            style={{ color: isFavorite ? 'var(--bright-yellow)' : 'var(--fg4)' }}
             fill={isFavorite ? 'currentColor' : 'none'}
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -62,11 +71,11 @@ export default function ChannelCard({ channel, onSelect }: ChannelCardProps) {
 
       {/* Channel info */}
       <div className="p-3">
-        <h3 className="text-sm font-medium text-white truncate" title={channel.name}>
+        <h3 className="text-sm font-medium truncate" style={{ color: 'var(--fg1)' }} title={channel.name}>
           {channel.name}
         </h3>
         {channel.group && (
-          <p className="text-xs text-dark-400 mt-1 truncate">
+          <p className="text-xs mt-1 truncate" style={{ color: 'var(--fg4)' }}>
             {channel.group}
           </p>
         )}

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Hls from 'hls.js';
-import { useStore } from '../store';
-import { Channel } from '../types';
+import { useStore } from '@/store';
+import { Channel } from '@/types';
 
 interface VideoPlayerProps {
   channel: Channel;
@@ -14,7 +14,6 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
   const hlsRef = useRef<Hls | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   
-  // Local state for player (not from store to avoid re-render issues)
   const [isLoading, setIsLoading] = useState(true);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(true);
@@ -29,7 +28,6 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
     const video = videoRef.current;
     if (!video || !channel.url) return;
 
-    // Reset state for new channel
     setIsLoading(true);
     setIsPlaying(false);
     setError(null);
@@ -56,9 +54,7 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
               if (!mounted) return;
               setIsLoading(false);
               setIsPlaying(true);
-              video.play().catch(() => {
-                // Autoplay may be blocked, that's ok
-              });
+              video.play().catch(() => {});
               onReady?.();
               addToRecentlyWatched(channel.id);
             });
@@ -93,7 +89,6 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
 
             hlsRef.current = hls;
           } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-            // Native HLS support (Safari)
             video.src = channel.url;
             video.addEventListener('loadedmetadata', () => {
               if (!mounted) return;
@@ -112,7 +107,6 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
             setError('HLS streaming is not supported in your browser');
           }
         } else {
-          // Direct video URL (mp4, etc.)
           video.src = channel.url;
           video.addEventListener('loadedmetadata', () => {
             if (!mounted) return;
@@ -205,7 +199,8 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
   return (
     <div
       ref={containerRef}
-      className="video-container relative bg-black"
+      className="video-container relative"
+      style={{ backgroundColor: '#000' }}
       onMouseMove={handleMouseMove}
       onMouseLeave={() => setShowControls(false)}
     >
@@ -220,36 +215,39 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
 
       {/* Loading indicator */}
       {isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/70">
+        <div className="absolute inset-0 flex flex-col items-center justify-center" style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}>
           <div className="spinner mb-3" />
-          <p className="text-white text-sm">Loading stream...</p>
+          <p className="text-sm" style={{ color: 'var(--fg1)' }}>Loading stream...</p>
         </div>
       )}
 
       {/* Error display */}
       {error && !isLoading && (
-        <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 p-6">
-          <svg className="w-16 h-16 text-red-500 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div className="absolute inset-0 flex flex-col items-center justify-center p-6" style={{ backgroundColor: 'rgba(0, 0, 0, 0.8)' }}>
+          <svg className="w-16 h-16 mb-4" style={{ color: 'var(--bright-red)' }} fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          <p className="text-white text-center font-medium mb-2">Unable to Play</p>
-          <p className="text-dark-400 text-sm text-center max-w-md mb-4">{error}</p>
-          <div className="bg-dark-800 rounded-lg p-4 text-xs text-dark-400 space-y-2">
-            <p><strong>Common issues:</strong></p>
-            <p>• Stream may be offline or temporarily unavailable</p>
-            <p>• Some streams block browser playback (CORS policy)</p>
-            <p>• Try a different channel from the list</p>
-            <p>• Free IPTV streams can be unreliable</p>
+          <p className="text-center font-medium mb-2" style={{ color: 'var(--fg1)' }}>Unable to Play</p>
+          <p className="text-sm text-center max-w-md mb-4" style={{ color: 'var(--fg4)' }}>{error}</p>
+          <div className="rounded-lg p-4 text-xs space-y-2" style={{ backgroundColor: 'var(--bg2)' }}>
+            <p style={{ color: 'var(--fg3)' }}><strong>Common issues:</strong></p>
+            <p style={{ color: 'var(--fg4)' }}>• Stream may be offline or temporarily unavailable</p>
+            <p style={{ color: 'var(--fg4)' }}>• Some streams block browser playback (CORS policy)</p>
+            <p style={{ color: 'var(--fg4)' }}>• Try a different channel from the list</p>
+            <p style={{ color: 'var(--fg4)' }}>• Free IPTV streams can be unreliable</p>
           </div>
         </div>
       )}
 
-      {/* Unmute button (shown when muted and playing) */}
+      {/* Unmute button */}
       {isPlaying && isMuted && !isLoading && !error && (
         <div className="absolute top-4 right-4">
           <button
             onClick={toggleMute}
-            className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors shadow-lg"
+            className="flex items-center gap-2 px-4 py-2 rounded-lg shadow-lg transition-colors"
+            style={{ backgroundColor: 'var(--red)', color: 'var(--fg0)' }}
+            onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bright-red)'}
+            onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'var(--red)'}
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" />
@@ -263,15 +261,17 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
       {/* Controls overlay */}
       {!isLoading && (
         <div
-          className={`absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 transition-opacity duration-300 ${
-            showControls ? 'opacity-100' : 'opacity-0'
-          }`}
+          className={`absolute bottom-0 left-0 right-0 p-4 transition-opacity duration-300 ${showControls ? 'opacity-100' : 'opacity-0'}`}
+          style={{ background: 'linear-gradient(to top, rgba(0,0,0,0.8), transparent)' }}
         >
           <div className="flex items-center gap-4">
             {/* Play/Pause */}
             <button
               onClick={togglePlay}
-              className="text-white hover:text-primary-400 transition-colors"
+              className="transition-colors"
+              style={{ color: 'var(--fg1)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--bright-blue)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg1)'}
               aria-label={isPlaying ? 'Pause' : 'Play'}
             >
               {isPlaying ? (
@@ -289,7 +289,10 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
             {/* Mute */}
             <button
               onClick={toggleMute}
-              className="text-white hover:text-primary-400 transition-colors"
+              className="transition-colors"
+              style={{ color: 'var(--fg1)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--bright-blue)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg1)'}
               aria-label={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? (
@@ -311,18 +314,22 @@ export default function VideoPlayer({ channel, onReady, onError }: VideoPlayerPr
               step="0.1"
               value={isMuted ? 0 : volume}
               onChange={handleVolumeChange}
-              className="w-20 accent-primary-500"
+              className="w-20"
+              style={{ accentColor: 'var(--bright-blue)' }}
             />
 
             {/* Channel name */}
-            <span className="flex-1 text-white text-sm truncate">
+            <span className="flex-1 text-sm truncate" style={{ color: 'var(--fg1)' }}>
               {channel.name}
             </span>
 
             {/* Fullscreen */}
             <button
               onClick={toggleFullscreen}
-              className="text-white hover:text-primary-400 transition-colors"
+              className="transition-colors"
+              style={{ color: 'var(--fg1)' }}
+              onMouseEnter={(e) => e.currentTarget.style.color = 'var(--bright-blue)'}
+              onMouseLeave={(e) => e.currentTarget.style.color = 'var(--fg1)'}
               aria-label="Toggle fullscreen"
             >
               <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">

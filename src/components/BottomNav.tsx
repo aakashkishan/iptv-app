@@ -1,5 +1,4 @@
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { name: 'Home', path: '/', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
@@ -11,10 +10,9 @@ const navItems = [
 
 export default function BottomNav() {
   const location = useLocation();
-  const { signOut } = useAuth();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-dark-900 border-t border-dark-800 safe-bottom z-50">
+    <nav className="md:hidden fixed bottom-0 left-0 right-0 safe-bottom z-50" style={{ backgroundColor: 'var(--bg1)', borderTop: '1px solid var(--bg3)' }}>
       <div className="flex justify-around items-center h-16">
         {navItems.map((item) => {
           const isActive = location.pathname === item.path;
@@ -22,11 +20,8 @@ export default function BottomNav() {
             <Link
               key={item.path}
               to={item.path}
-              className={`flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors ${
-                isActive
-                  ? 'text-primary-500'
-                  : 'text-dark-400'
-              }`}
+              className="flex flex-col items-center justify-center gap-1 flex-1 h-full transition-colors"
+              style={{ color: isActive ? 'var(--bright-blue)' : 'var(--fg4)' }}
             >
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d={item.icon} />
