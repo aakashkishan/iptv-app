@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useStore } from '../store';
 import { Channel } from '../types';
 import { parseM3U, fetchPlaylist, parseM3UFile } from '../utils/m3uParser';
@@ -6,6 +6,8 @@ import VideoPlayer from '../components/VideoPlayer';
 import ChannelList from '../components/ChannelList';
 import CategoryFilter from '../components/CategoryFilter';
 import SearchBar from '../components/SearchBar';
+
+const CHANNELS_PER_PAGE = 100;
 
 export default function HomePage() {
   const {
@@ -27,9 +29,11 @@ export default function HomePage() {
   const [showPlayer, setShowPlayer] = useState(false);
   const [playlistUrl, setPlaylistUrl] = useState('');
   const [isAddingPlaylist, setIsAddingPlaylist] = useState(false);
+  const [displayCount, setDisplayCount] = useState(CHANNELS_PER_PAGE);
+  const [isLargePlaylist, setIsLargePlaylist] = useState(false);
 
-  // Filter channels based on category and search
-  useEffect(() => {
+  // Optimized filtering with useMemo
+  const optimizedFilteredChannels = useMemo(() => {
     let filtered = channels;
 
     if (selectedCategory && selectedCategory !== 'All') {
@@ -44,16 +48,35 @@ export default function HomePage() {
       );
     }
 
-    setFilteredChannels(filtered);
-  }, [channels, selectedCategory, searchQuery, setFilteredChannels]);
+    return filtered;
+  }, [channels, selectedCategory, searchQuery]);
 
-  const handleSelectChannel = (channel: Channel) => {
+  // Update store with filtered channels
+  useEffect(() => {
+    setFilteredChannels(optimizedFilteredChannels);
+  }, [optimizedFilteredChannels, setFilteredChannels]);
+
+  // Check if playlist is large
+  useEffect(() => {
+    setIsLargePlaylist(channels.length > 1000);
+  }, [channels]);
+
+  // Reset display count when filters change
+  useEffect(() => {
+    setDisplayCount(CHANNELS_PER_PAGE);
+  }, [selectedCategory, searchQuery]);
+
+  const handleSelectChannel = useCallback((channel: Channel) => {
     setPlayerState({ currentChannel: channel });
     setShowPlayer(true);
-  };
+  }, [setPlayerState]);
 
-  const handleCategorySelect = (category: string) => {
+  const handleCategorySelect = useCallback((category: string) => {
     setSelectedCategory(category);
+  }, [setSelectedCategory]);
+
+  const handleLoadMore = () => {
+    setDisplayCount(prev => prev + CHANNELS_PER_PAGE);
   };
 
   const handleLoadPlaylist = async () => {
@@ -62,8 +85,18 @@ export default function HomePage() {
     setLoading(true);
     try {
       const channelsList = await fetchPlaylist(playlistUrl);
-      setChannels(channelsList);
       
+      if (channelsList.length > 1000) {
+        if (!window.confirm(
+          `This playlist contains ${channelsList.length.toLocaleString()} channels. Loading may take a moment. Continue?`
+        )) {
+          setLoading(false);
+          return;
+        }
+      }
+      
+      setChannels(channelsList);
+
       const playlist = {
         id: `playlist-${Date.now()}`,
         name: playlistUrl.split('/').pop() || 'Playlist',
@@ -72,7 +105,7 @@ export default function HomePage() {
         lastUpdated: new Date(),
         isActive: true,
       };
-      
+
       setActivePlaylist(playlist);
       setPlaylistUrl('');
       setIsAddingPlaylist(false);
@@ -91,8 +124,18 @@ export default function HomePage() {
     setLoading(true);
     try {
       const channelsList = await parseM3UFile(file);
-      setChannels(channelsList);
       
+      if (channelsList.length > 1000) {
+        if (!window.confirm(
+          `This playlist contains ${channelsList.length.toLocaleString()} channels. Loading may take a moment. Continue?`
+        )) {
+          setLoading(false);
+          return;
+        }
+      }
+      
+      setChannels(channelsList);
+
       const playlist = {
         id: `playlist-${Date.now()}`,
         name: file.name,
@@ -101,7 +144,7 @@ export default function HomePage() {
         lastUpdated: new Date(),
         isActive: true,
       };
-      
+
       setActivePlaylist(playlist);
       setIsAddingPlaylist(false);
     } catch (error) {
@@ -111,6 +154,10 @@ export default function HomePage() {
       setLoading(false);
     }
   };
+
+  // Get channels to display (with pagination)
+  const displayedChannels = optimizedFilteredChannels.slice(0, displayCount);
+  const hasMore = displayCount < optimizedFilteredChannels.length;
 
   // If no channels, show add playlist UI
   if (channels.length === 0) {
@@ -122,7 +169,7 @@ export default function HomePage() {
               <path d="M21 3H3c-1.11 0-2 .89-2 2v12c0 1.1.89 2 2 2h5v2h8v-2h5c1.1 0 1.99-.9 1.99-2L23 5c0-1.11-.9-2-2-2zm0 14H3V5h18v12zm-5-6l-7 4V7z" />
             </svg>
           </div>
-          
+
           <h2 className="text-2xl font-bold text-white mb-2">Welcome to IPTV Stream</h2>
           <p className="text-dark-400 mb-8">Add an M3U playlist to start watching live TV</p>
 
@@ -144,6 +191,9 @@ export default function HomePage() {
               >
                 Load Playlist
               </button>
+              <p className="text-xs text-dark-500 mt-3">
+                💡 Try: https://iptv-org.github.io/iptv/index.m3u (10,000+ free channels)
+              </p>
             </div>
 
             <div className="text-dark-500 font-medium">OR</div>
@@ -211,18 +261,25 @@ export default function HomePage() {
       <div className="sticky top-0 z-30 bg-dark-900/95 backdrop-blur-sm border-b border-dark-800 safe-top">
         <div className="p-4 space-y-4">
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-bold text-white">
-              {selectedCategory === 'All' ? 'All Channels' : selectedCategory}
-            </h1>
+            <div>
+              <h1 className="text-xl font-bold text-white">
+                {selectedCategory === 'All' ? 'All Channels' : selectedCategory}
+              </h1>
+              {isLargePlaylist && (
+                <p className="text-xs text-dark-500 mt-1">
+                  Showing {displayedChannels.length.toLocaleString()} of {optimizedFilteredChannels.length.toLocaleString()} channels
+                </p>
+              )}
+            </div>
             <div className="flex items-center gap-2">
               <span className="text-sm text-dark-400">
-                {filteredChannels.length} channels
+                {optimizedFilteredChannels.length.toLocaleString()} total
               </span>
             </div>
           </div>
-          
+
           <SearchBar />
-          
+
           {categories.length > 1 && (
             <CategoryFilter onSelectCategory={handleCategorySelect} />
           )}
@@ -231,7 +288,19 @@ export default function HomePage() {
 
       {/* Channel List */}
       <div className="p-4 pb-24 md:pb-4">
-        <ChannelList channels={filteredChannels} onSelectChannel={handleSelectChannel} />
+        <ChannelList channels={displayedChannels} onSelectChannel={handleSelectChannel} />
+
+        {/* Load More Button */}
+        {hasMore && (
+          <div className="mt-6 text-center">
+            <button
+              onClick={handleLoadMore}
+              className="px-8 py-3 bg-dark-800 border border-dark-700 text-white rounded-lg hover:bg-dark-700 transition-colors"
+            >
+              Load More Channels ({optimizedFilteredChannels.length - displayCount} remaining)
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
