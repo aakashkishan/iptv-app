@@ -15,6 +15,10 @@ interface AppState {
   selectedCategory: string;
   searchQuery: string;
   
+  // Lazy loading
+  displayCount: number;
+  channelsPerPage: number;
+  
   // Favorites
   favorites: string[];
   
@@ -38,6 +42,8 @@ interface AppState {
   setFilteredChannels: (channels: Channel[]) => void;
   setSelectedCategory: (category: string) => void;
   setSearchQuery: (query: string) => void;
+  setDisplayCount: (count: number) => void;
+  loadMoreChannels: () => void;
   toggleFavorite: (channelId: string) => void;
   addToRecentlyWatched: (channelId: string) => void;
   setPlayerState: (state: Partial<PlayerState>) => void;
@@ -66,6 +72,8 @@ const defaultPlayerState: PlayerState = {
   isFullscreen: false,
 };
 
+const CHANNELS_PER_PAGE = 100;
+
 export const useStore = create<AppState>()(
   persist(
     (set) => ({
@@ -77,6 +85,8 @@ export const useStore = create<AppState>()(
       categories: [],
       selectedCategory: 'All',
       searchQuery: '',
+      displayCount: CHANNELS_PER_PAGE,
+      channelsPerPage: CHANNELS_PER_PAGE,
       favorites: [],
       recentlyWatched: [],
       player: defaultPlayerState,
@@ -91,16 +101,33 @@ export const useStore = create<AppState>()(
         activePlaylist: playlist,
         channels: playlist?.channels || [],
         filteredChannels: playlist?.channels || [],
-        categories: ['All', ...new Set(playlist?.channels.map(c => c.group).filter(Boolean) || [])]
+        categories: ['All', ...new Set(playlist?.channels.map(c => c.group).filter(Boolean) || [])],
+        displayCount: CHANNELS_PER_PAGE, // Reset display count
       }),
       
-      setChannels: (channels) => set({ channels, filteredChannels: channels }),
+      setChannels: (channels) => set({ 
+        channels, 
+        filteredChannels: channels,
+        displayCount: CHANNELS_PER_PAGE, // Reset display count
+      }),
       
       setFilteredChannels: (filteredChannels) => set({ filteredChannels }),
       
-      setSelectedCategory: (selectedCategory) => set({ selectedCategory }),
+      setSelectedCategory: (selectedCategory) => set({ 
+        selectedCategory,
+        displayCount: CHANNELS_PER_PAGE, // Reset display count when category changes
+      }),
       
-      setSearchQuery: (searchQuery) => set({ searchQuery }),
+      setSearchQuery: (searchQuery) => set({ 
+        searchQuery,
+        displayCount: CHANNELS_PER_PAGE, // Reset display count when search changes
+      }),
+      
+      setDisplayCount: (displayCount) => set({ displayCount }),
+      
+      loadMoreChannels: () => set((state) => ({
+        displayCount: state.displayCount + state.channelsPerPage
+      })),
       
       toggleFavorite: (channelId) => set((state) => ({
         favorites: state.favorites.includes(channelId)

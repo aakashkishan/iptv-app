@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useStore } from '../store';
 import { Channel } from '../types';
 import { parseM3U, fetchPlaylist, parseM3UFile } from '../utils/m3uParser';
@@ -7,8 +7,6 @@ import ChannelList from '../components/ChannelList';
 import CategoryFilter from '../components/CategoryFilter';
 import SearchBar from '../components/SearchBar';
 
-const CHANNELS_PER_PAGE = 100;
-
 export default function HomePage() {
   const {
     channels,
@@ -16,6 +14,7 @@ export default function HomePage() {
     categories,
     selectedCategory,
     searchQuery,
+    displayCount,
     player,
     setChannels,
     setFilteredChannels,
@@ -24,27 +23,32 @@ export default function HomePage() {
     setActivePlaylist,
     setPlayerState,
     setLoading,
+    loadMoreChannels,
   } = useStore();
 
   const [showPlayer, setShowPlayer] = useState(false);
   const [playlistUrl, setPlaylistUrl] = useState('');
-  const [isAddingPlaylist, setIsAddingPlaylist] = useState(false);
-  const [displayCount, setDisplayCount] = useState(CHANNELS_PER_PAGE);
-  const [isLargePlaylist, setIsLargePlaylist] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // Optimized filtering with useMemo
+  // Optimized filtering with useMemo - works on ALL channels
   const optimizedFilteredChannels = useMemo(() => {
     let filtered = channels;
 
+    // Filter by category
     if (selectedCategory && selectedCategory !== 'All') {
       filtered = filtered.filter(ch => ch.group === selectedCategory);
     }
 
+    // Filter by search query (searches ALL channels)
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(ch =>
         ch.name.toLowerCase().includes(query) ||
-        ch.group?.toLowerCase().includes(query)
+        ch.group?.toLowerCase().includes(query) ||
+        ch.tvgName?.toLowerCase().includes(query) ||
+        ch.language?.toLowerCase().includes(query)
       );
     }
 
@@ -56,14 +60,13 @@ export default function HomePage() {
     setFilteredChannels(optimizedFilteredChannels);
   }, [optimizedFilteredChannels, setFilteredChannels]);
 
-  // Check if playlist is large
-  useEffect(() => {
-    setIsLargePlaylist(channels.length > 1000);
-  }, [channels]);
+  // Get channels to display (lazy loaded subset)
+  const displayedChannels = optimizedFilteredChannels.slice(0, displayCount);
+  const hasMore = displayCount < optimizedFilteredChannels.length;
 
   // Reset display count when filters change
   useEffect(() => {
-    setDisplayCount(CHANNELS_PER_PAGE);
+    useStore.setState({ displayCount: 100 });
   }, [selectedCategory, searchQuery]);
 
   const handleSelectChannel = useCallback((channel: Channel) => {
@@ -75,8 +78,40 @@ export default function HomePage() {
     setSelectedCategory(category);
   }, [setSelectedCategory]);
 
+  // Infinite scroll - load more when user scrolls near bottom
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          setIsLoadingMore(true);
+          // Small delay to prevent rapid firing
+          setTimeout(() => {
+            loadMoreChannels();
+            setIsLoadingMore(false);
+          }, 300);
+        }
+      },
+      {
+        rootMargin: '500px', // Load more when 500px from bottom
+      }
+    );
+
+    const currentRef = loadMoreRef.current;
+    if (currentRef && hasMore) {
+      observer.observe(currentRef);
+    }
+
+    return () => {
+      if (currentRef) {
+        observer.unobserve(currentRef);
+      }
+    };
+  }, [hasMore, isLoadingMore, loadMoreChannels]);
+
   const handleLoadMore = () => {
-    setDisplayCount(prev => prev + CHANNELS_PER_PAGE);
+    setIsLoadingMore(true);
+    loadMoreChannels();
+    setTimeout(() => setIsLoadingMore(false), 200);
   };
 
   const handleLoadPlaylist = async () => {
@@ -86,9 +121,10 @@ export default function HomePage() {
     try {
       const channelsList = await fetchPlaylist(playlistUrl);
       
-      if (channelsList.length > 1000) {
+      // Warn for very large playlists
+      if (channelsList.length > 5000) {
         if (!window.confirm(
-          `This playlist contains ${channelsList.length.toLocaleString()} channels. Loading may take a moment. Continue?`
+          `This playlist contains ${channelsList.length.toLocaleString()} channels. The app will load them efficiently (100 at a time). Continue?`
         )) {
           setLoading(false);
           return;
@@ -108,7 +144,6 @@ export default function HomePage() {
 
       setActivePlaylist(playlist);
       setPlaylistUrl('');
-      setIsAddingPlaylist(false);
     } catch (error) {
       console.error('Error loading playlist:', error);
       alert('Failed to load playlist. Please check the URL and try again.');
@@ -125,9 +160,10 @@ export default function HomePage() {
     try {
       const channelsList = await parseM3UFile(file);
       
-      if (channelsList.length > 1000) {
+      // Warn for very large playlists
+      if (channelsList.length > 5000) {
         if (!window.confirm(
-          `This playlist contains ${channelsList.length.toLocaleString()} channels. Loading may take a moment. Continue?`
+          `This playlist contains ${channelsList.length.toLocaleString()} channels. The app will load them efficiently (100 at a time). Continue?`
         )) {
           setLoading(false);
           return;
@@ -146,7 +182,6 @@ export default function HomePage() {
       };
 
       setActivePlaylist(playlist);
-      setIsAddingPlaylist(false);
     } catch (error) {
       console.error('Error loading playlist file:', error);
       alert('Failed to load playlist file. Please make sure it\'s a valid M3U file.');
@@ -154,10 +189,6 @@ export default function HomePage() {
       setLoading(false);
     }
   };
-
-  // Get channels to display (with pagination)
-  const displayedChannels = optimizedFilteredChannels.slice(0, displayCount);
-  const hasMore = displayCount < optimizedFilteredChannels.length;
 
   // If no channels, show add playlist UI
   if (channels.length === 0) {
@@ -193,6 +224,9 @@ export default function HomePage() {
               </button>
               <p className="text-xs text-dark-500 mt-3">
                 💡 Try: https://iptv-org.github.io/iptv/index.m3u (10,000+ free channels)
+              </p>
+              <p className="text-xs text-primary-400 mt-2">
+                ✨ Lazy loading enabled - only 100 channels load at a time
               </p>
             </div>
 
@@ -265,9 +299,10 @@ export default function HomePage() {
               <h1 className="text-xl font-bold text-white">
                 {selectedCategory === 'All' ? 'All Channels' : selectedCategory}
               </h1>
-              {isLargePlaylist && (
+              {channels.length > 1000 && (
                 <p className="text-xs text-dark-500 mt-1">
                   Showing {displayedChannels.length.toLocaleString()} of {optimizedFilteredChannels.length.toLocaleString()} channels
+                  {hasMore && ' • Scroll to load more'}
                 </p>
               )}
             </div>
@@ -290,15 +325,31 @@ export default function HomePage() {
       <div className="p-4 pb-24 md:pb-4">
         <ChannelList channels={displayedChannels} onSelectChannel={handleSelectChannel} />
 
-        {/* Load More Button */}
+        {/* Load More indicator (infinite scroll sentinel) */}
         {hasMore && (
-          <div className="mt-6 text-center">
-            <button
-              onClick={handleLoadMore}
-              className="px-8 py-3 bg-dark-800 border border-dark-700 text-white rounded-lg hover:bg-dark-700 transition-colors"
-            >
-              Load More Channels ({optimizedFilteredChannels.length - displayCount} remaining)
-            </button>
+          <div ref={loadMoreRef} className="mt-6 text-center">
+            {isLoadingMore ? (
+              <div className="flex items-center justify-center gap-3 py-4">
+                <div className="spinner" style={{ width: '24px', height: '24px', borderWidth: '2px' }} />
+                <span className="text-dark-400 text-sm">Loading more channels...</span>
+              </div>
+            ) : (
+              <button
+                onClick={handleLoadMore}
+                className="px-8 py-3 bg-dark-800 border border-dark-700 text-white rounded-lg hover:bg-dark-700 transition-colors"
+              >
+                Load More Channels ({(optimizedFilteredChannels.length - displayCount).toLocaleString()} remaining)
+              </button>
+            )}
+          </div>
+        )}
+
+        {/* All channels loaded message */}
+        {!hasMore && optimizedFilteredChannels.length > 100 && (
+          <div className="mt-6 text-center py-4">
+            <p className="text-dark-500 text-sm">
+              ✓ All {optimizedFilteredChannels.length.toLocaleString()} channels loaded
+            </p>
           </div>
         )}
       </div>
